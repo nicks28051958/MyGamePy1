@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 pygame.init()
 
@@ -33,9 +34,17 @@ score = 0
 # Шрифт для отображения текста
 font = pygame.font.Font(None, 36)
 
+# Таймер
+start_time = time.time()
+level_time_limit = 120  # 120 секунд на уровень
+
 def draw_text(surface, text, pos, font, color=(255, 255, 255)):
     text_surface = font.render(text, True, color)
     surface.blit(text_surface, pos)
+
+def get_remaining_time(start_time, level_time_limit):
+    elapsed_time = time.time() - start_time
+    return max(0, level_time_limit - int(elapsed_time))
 
 running = True
 while running:
@@ -50,7 +59,7 @@ while running:
                 target_y = random.randint(0, SCREEN_HEIGHT - target_height)
                 speed_x = random.choice([-level, level])
                 speed_y = random.choice([-level, level])
-                score += int(level*10)  # Добавляем баллы в зависимости от уровня
+                score += int(level * 10)  # Добавляем баллы в зависимости от уровня
 
     # Обновление позиции мишени
     target_x += speed_x
@@ -64,12 +73,32 @@ while running:
 
     screen.blit(target_image, (target_x, target_y))
 
-    # Отображение текущего счета
+    # Отображение текущего счета и уровня
     draw_text(screen, f"Счет: {score}", (SCREEN_WIDTH - 150, 10), font)
+    draw_text(screen, f"Уровень: {int(level / 0.25)}", (SCREEN_WIDTH - 150, 50), font)
+
+    # Таймер
+    remaining_time = get_remaining_time(start_time, level_time_limit)
+    draw_text(screen, f"Время: {remaining_time}", (SCREEN_WIDTH - 150, 90), font)
+
+    # Проверка окончания времени на уровне
+    if remaining_time == 0:
+        if level > 0.25:
+            level -= 0.25
+            print("Время на уровне истекло! Переход на уровень ниже.")
+        score = 0
+        start_time = time.time()  # Сбрасываем таймер
+
+    # Переход на новый уровень при достижении 50 баллов
+    if score >= 50:
+        level += 0.25
+        score = 0
+        start_time = time.time()  # Сбрасываем таймер
 
     pygame.display.update()
 
 pygame.quit()
+
 
 
 
